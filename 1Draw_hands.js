@@ -13,11 +13,24 @@ function drawInteraction(faces, hands) {
     if (showKeypoints) {
       drawConnections(hand)
     }
-
+    let tips = [hand.thumb_tip.x,hand.thumb_tip.y,
+      hand.index_finger_tip.x,hand.index_finger_tip.y,
+        hand.middle_finger_tip.x,hand.middle_finger_tip.y,
+        hand.ring_finger_tip.x,hand.ring_finger_tip.y,
+        hand.pinky_finger_tip.x,hand.pinky_finger_tip.y
+      ];
+      let mids = [hand.thumb_ip.x,hand.thumb_ip.y,
+      hand.index_finger_dip.x,hand.index_finger_dip.y,
+        hand.middle_finger_dip.x,hand.middle_finger_dip.y,
+        hand.ring_finger_dip.x,hand.ring_finger_dip.y,
+        hand.pinky_finger_dip.x,hand.pinky_finger_dip.y
+      ];
     // This is how to load in the x and y of a point on the hand.
-    let indexFingerTipX = hand.index_finger_tip.x;
-    let indexFingerTipY = hand.index_finger_tip.y;
-
+    //let indexFingerTipX = hand.index_finger_tip.x;
+    //let indexFingerTipY = hand.index_finger_tip.y;
+let wristX = hand.wrist.x;
+let wristY = hand.wrist.y;
+   
     //  let pinkyFingerTipX = hand.pinky_finger_tip.x;
     //  let pinkyFingerTipY = hand.pinky_finger_tip.y;
 
@@ -25,10 +38,14 @@ function drawInteraction(faces, hands) {
     Start drawing on the hands here
     */
 
-    fill(225, 225, 0);
-    ellipse(indexFingerTipX, indexFingerTipY, 30, 30);
+   let handedness = hand.handedness;
+    
+    firstDraw(tips, wristX, wristY)
+    firstDraw(mids,wristX, wristY)
+    drawPoints(hand)
+    drawFly(wristX, wristY, handedness)
 
-    // drawPoints(hand)
+   
 
     //fingerPuppet(indexFingerTipX, indexFingerTipY);
 
@@ -45,7 +62,48 @@ function drawInteraction(faces, hands) {
 
 
 
+function firstDraw(tips, wristX, wristY) {
+  noFill()
+  let curX = tips[0];
+  let curY = tips[1];
+  for (let i = 2; i < tips.length; i += 2) {
+    bezier(curX, curY, (wristX + curX*2)/3, (wristY +curY*2)/3, (wristX + curX*2)/3, (wristY +curY*2)/3, tips[i], tips[i + 1])
+    curX = tips[i];
+    curY = tips[i+1];
+  }
+  rect(1250,700,20)
 
+}
+let flyX =  30;
+let flyY = 30;
+let acc = .5;
+let velX = 0;
+let velY = 0;
+function drawFly(x,y,handedness){
+  if (handedness == "Left"){
+  if (flyX > x){velX -= acc}
+  if (flyX < x){velX += acc}
+  if (flyY > y){velY -= acc}
+  if (flyY < y){velY += acc}
+  fill(0,0,0)
+  circle(flyX,flyY,20,20)
+  flyX += velX
+  flyY += velY
+  if(flyX < 0){velX = -velX}
+  if(flyY < 0){velY = -velY}
+  if(flyX > 1250){velX = -velX*0.8}
+  if(flyY > 700) {velY = -velY*0.8}
+}
+}
+
+function drawHelpr(x,y,n){
+  fill(255-n*10,0+n*10,0)
+  noStroke()
+  rect(x,y,20,20)
+  if (n<20){
+  setTimeout(() => drawHelpr(x, y,n+1), 10);
+}
+}
 
 function fingerPuppet(x, y) {
   fill(255, 38, 219) // pink
