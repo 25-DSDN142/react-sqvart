@@ -112,9 +112,9 @@ function drawPoints(feature) {
   push()
   for (let i = 0; i < feature.keypoints.length; i++) {
     let element = feature.keypoints[i];
-    noStroke();
-    fill(0, 255, 0);
-    circle(element.x, element.y, 5);
+    Stroke(0);
+    fill(255,);
+    circle(element.x, element.y, 15);
   }
   pop()
 

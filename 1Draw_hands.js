@@ -1,6 +1,11 @@
 // ----=  HANDS  =----
 /* load images here */
 function prepareInteraction() {
+    flyImg = loadImage('FLY.png');
+    imageMode(CENTER);
+    spiderImg = loadImage('SPIDER.png');
+    imageMode(CENTER);
+
   //bgImage = loadImage('/images/background.png');
 }
 
@@ -13,18 +18,33 @@ function drawInteraction(faces, hands) {
     if (showKeypoints) {
       drawConnections(hand)
     }
+
+    // hand array
     let tips = [hand.thumb_tip.x,hand.thumb_tip.y,
       hand.index_finger_tip.x,hand.index_finger_tip.y,
         hand.middle_finger_tip.x,hand.middle_finger_tip.y,
         hand.ring_finger_tip.x,hand.ring_finger_tip.y,
         hand.pinky_finger_tip.x,hand.pinky_finger_tip.y
       ];
-      let mids = [hand.thumb_ip.x,hand.thumb_ip.y,
+    let mids = [hand.thumb_ip.x,hand.thumb_ip.y,
       hand.index_finger_dip.x,hand.index_finger_dip.y,
         hand.middle_finger_dip.x,hand.middle_finger_dip.y,
         hand.ring_finger_dip.x,hand.ring_finger_dip.y,
         hand.pinky_finger_dip.x,hand.pinky_finger_dip.y
       ];
+    let lows = [hand.thumb_mcp.x,hand.thumb_mcp.y,
+      hand.index_finger_pip.x,hand.index_finger_pip.y,
+        hand.middle_finger_pip.x,hand.middle_finger_pip.y,
+        hand.ring_finger_pip.x,hand.ring_finger_pip.y,
+        hand.pinky_finger_pip.x,hand.pinky_finger_pip.y
+      ];
+    let joins = [hand.thumb_cmc.x,hand.thumb_cmc.y,
+      hand.index_finger_mcp.x,hand.index_finger_mcp.y,
+        hand.middle_finger_mcp.x,hand.middle_finger_mcp.y,
+        hand.ring_finger_mcp.x,hand.ring_finger_mcp.y,
+        hand.pinky_finger_mcp.x,hand.pinky_finger_mcp.y
+      ];
+
     // This is how to load in the x and y of a point on the hand.
     //let indexFingerTipX = hand.index_finger_tip.x;
     //let indexFingerTipY = hand.index_finger_tip.y;
@@ -40,10 +60,13 @@ let wristY = hand.wrist.y;
 
    let handedness = hand.handedness;
     
-    firstDraw(tips, wristX, wristY)
-    firstDraw(mids,wristX, wristY)
-    drawPoints(hand)
-    drawFly(wristX, wristY, handedness)
+    firstDraw(tips, wristX, wristY);
+    firstDraw(mids,wristX, wristY);
+    firstDraw(lows,wristX, wristY);
+    //firstDraw(joins,wristX, wristY);
+    //drawPoints(hand)
+    drawFly(wristX, wristY, handedness);
+    drawSpiderDangle(hand);
 
    
 
@@ -64,6 +87,7 @@ let wristY = hand.wrist.y;
 
 function firstDraw(tips, wristX, wristY) {
   noFill()
+  stroke(0)
   let curX = tips[0];
   let curY = tips[1];
   for (let i = 2; i < tips.length; i += 2) {
@@ -71,22 +95,43 @@ function firstDraw(tips, wristX, wristY) {
     curX = tips[i];
     curY = tips[i+1];
   }
-  rect(1250,700,20)
+
+
 
 }
+let flySize = 60;
+let flyImg;
 let flyX =  30;
 let flyY = 30;
 let acc = .5;
 let velX = 0;
 let velY = 0;
+
 function drawFly(x,y,handedness){
   if (handedness == "Left"){
   if (flyX > x){velX -= acc}
   if (flyX < x){velX += acc}
   if (flyY > y){velY -= acc}
   if (flyY < y){velY += acc}
-  fill(0,0,0)
-  circle(flyX,flyY,20,20)
+  if (flyImg) {
+    push();
+    translate(flyX, flyY);
+
+    // avoid weird angles when nearly stopped
+    let ang = 0;
+    if (abs(velX) + abs(velY) > 0.0001) {
+      ang = atan2(velY, velX);
+      }
+
+      rotate(ang);
+      image(flyImg, 0, 0, flySize, flySize);
+      pop();
+    } else {
+      // fallback while image loads
+      fill(0);
+      circle(flyX, flyY, 20);
+    }
+
   flyX += velX
   flyY += velY
   if(flyX < 0){velX = -velX}
@@ -94,6 +139,39 @@ function drawFly(x,y,handedness){
   if(flyX > 1250){velX = -velX*0.8}
   if(flyY > 700) {velY = -velY*0.8}
 }
+}
+
+function drawSpiderDangle(hand) {
+  
+  // finger tips
+  let ix = hand.index_finger_tip.x;
+  let iy = hand.index_finger_tip.y;
+  let tx = hand.thumb_tip.x;
+  let ty = hand.thumb_tip.y;
+
+  // web between finger tips
+  stroke(255);
+  strokeWeight(2);
+  line(ix, iy, tx, ty);
+
+  // midpoint where the thread attaches
+  let midX = (ix + tx) / 2;
+  let midY = (iy + ty) / 2;
+
+  // pinch distance (how far apart the tips are)
+  let d = dist(ix, iy, tx, ty);
+
+  // map pinch to thread length (adjust numbers to taste)
+  // smaller pinch -> shorter thread; bigger pinch -> longer thread
+  let threadLen = map(d, 20, 150, 60, 240, true);
+
+  // draw the dangling thread straight down (screen +y is down)
+  line(midX, midY, midX, midY + threadLen);
+
+  // draw the spider at the end of the thread
+  
+   // image(spiderImg, midX, midY + threadLen, spiderSize, spiderSize);
+ 
 }
 
 function drawHelpr(x,y,n){
